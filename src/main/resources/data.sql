@@ -27,10 +27,10 @@ INSERT INTO areas (id, nome, descricao) VALUES
 -- USUÁRIOS
 -- ================================
 INSERT INTO usuarios (id, nome, email, pontos, id_area_interesse) VALUES
-                                                                      (1,  'Sofia Mendes',  'sofia.mendes@tech.com',   3500, 1),
-                                                                      (3,  'Laura Gomes',   'laura.gomes@security.com',2800, 2),
-                                                                      (5,  'Mariana Lima',  'mariana.lima@esg.com',    4100, 3),
-                                                                      (12, 'Bruno Ferreira','bruno.ferreira@remote.com',1800,4);
+                                                                      (1,  'Sofia Mendes',   'sofia.mendes@tech.com',       3500, 1),
+                                                                      (3,  'Laura Gomes',    'laura.gomes@security.com',    2800, 2),
+                                                                      (5,  'Mariana Lima',   'mariana.lima@esg.com',        4100, 3),
+                                                                      (12, 'Bruno Ferreira', 'bruno.ferreira@remote.com',   1800, 4);
 
 -- ================================
 -- MISSÕES (GERADAS PELA IA, COMPARTILHADAS POR ÁREA)
@@ -39,7 +39,7 @@ INSERT INTO missoes (id, descricao, objetivo, moral, data_criacao, id_area, stat
                                                                                         (1,
                                                                                          'Desenvolver uma proposta de algoritmo para prever fuga de talentos.',
                                                                                          'Previsão de Turnover',
-                                                                                         50,
+                                                                                         '50',
                                                                                          CURRENT_TIMESTAMP,
                                                                                          1,
                                                                                          'ATIVA'),
@@ -47,7 +47,7 @@ INSERT INTO missoes (id, descricao, objetivo, moral, data_criacao, id_area, stat
                                                                                         (2,
                                                                                          'Sugerir melhorias para otimizar o uso de IA em processos internos.',
                                                                                          'Otimização IA',
-                                                                                         45,
+                                                                                         '45',
                                                                                          CURRENT_TIMESTAMP,
                                                                                          1,
                                                                                          'ATIVA'),
@@ -55,7 +55,7 @@ INSERT INTO missoes (id, descricao, objetivo, moral, data_criacao, id_area, stat
                                                                                         (3,
                                                                                          'Criar um plano simples de conscientização anti-phishing para colaboradores.',
                                                                                          'Plano Anti-Phishing',
-                                                                                         40,
+                                                                                         '40',
                                                                                          CURRENT_TIMESTAMP,
                                                                                          2,
                                                                                          'ATIVA'),
@@ -63,7 +63,7 @@ INSERT INTO missoes (id, descricao, objetivo, moral, data_criacao, id_area, stat
                                                                                         (5,
                                                                                          'Definir indicadores ESG para acompanhar impactos ambientais e sociais.',
                                                                                          'Métricas ESG',
-                                                                                         60,
+                                                                                         '60',
                                                                                          CURRENT_TIMESTAMP,
                                                                                          3,
                                                                                          'ATIVA'),
@@ -71,7 +71,7 @@ INSERT INTO missoes (id, descricao, objetivo, moral, data_criacao, id_area, stat
                                                                                         (12,
                                                                                          'Definir boas práticas de comunicação assíncrona para times remotos.',
                                                                                          'Guia de Colaboração',
-                                                                                         30,
+                                                                                         '30',
                                                                                          CURRENT_TIMESTAMP,
                                                                                          4,
                                                                                          'ATIVA');
@@ -97,7 +97,7 @@ VALUES
      5.00, 2,
      CURRENT_TIMESTAMP - 4),
 
--- Laura (Segurança)
+    -- Laura (Segurança)
     (3,
      'Checklist de Segurança para Home Office',
      'Lista rápida para colaboradores garantirem que seus dispositivos e redes estão seguros ao trabalhar de casa.',
@@ -105,7 +105,7 @@ VALUES
      4.00, 2,
      CURRENT_TIMESTAMP - 3),
 
--- Mariana (ESG)
+    -- Mariana (ESG)
     (5,
      'Mapeamento de Stakeholders ESG',
      'Mapa visual dos principais stakeholders internos e externos impactados pelas ações ESG da empresa.',
@@ -113,7 +113,7 @@ VALUES
      0.00, 0,
      CURRENT_TIMESTAMP - 2),
 
--- Bruno (Trabalho Remoto)
+    -- Bruno (Trabalho Remoto)
     (12,
      'Guia de Comunicação por E-mail',
      'Template de boas práticas para e-mails em times distribuídos, evitando ruídos e retrabalho.',
@@ -125,10 +125,10 @@ VALUES
 -- USUÁRIOS x MISSÕES (HISTÓRICO)
 -- ================================
 INSERT INTO usuarios_missoes (id_usuario, id_missao, data_conclusao, status) VALUES
-                                                                                 (1, 1, CURRENT_TIMESTAMP - 7,  'CONCLUIDA'),
-                                                                                 (1, 2, CURRENT_TIMESTAMP - 6,  'CONCLUIDA'),
-                                                                                 (3, 3, CURRENT_TIMESTAMP - 5,  'CONCLUIDA'),
-                                                                                 (5, 5, CURRENT_TIMESTAMP - 4,  'CONCLUIDA'),
+                                                                                 (1, 1,  CURRENT_TIMESTAMP - 7, 'CONCLUIDA'),
+                                                                                 (1, 2,  CURRENT_TIMESTAMP - 6, 'CONCLUIDA'),
+                                                                                 (3, 3,  CURRENT_TIMESTAMP - 5, 'CONCLUIDA'),
+                                                                                 (5, 5,  CURRENT_TIMESTAMP - 4, 'CONCLUIDA'),
                                                                                  (12,12, CURRENT_TIMESTAMP - 3, 'CONCLUIDA');
 
 -- ================================
@@ -146,7 +146,6 @@ INSERT INTO rankings (id, id_usuario, pontuacao_total, periodo) VALUES
 -- ================================
 -- Se quiser começar zerado e ir testando as notas via API,
 -- pode comentar esse bloco.
-
 INSERT INTO avaliacoes (id, id_ideia, nota, data_avaliacao) VALUES
                                                                 (1, 1, 5, CURRENT_TIMESTAMP - 4),
                                                                 (2, 1, 4, CURRENT_TIMESTAMP - 3),

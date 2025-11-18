@@ -15,3 +15,5 @@ public class IdeaEventListener {
         log.info("Evento recebido da fila de ideias: {}", payload);
     }
 }
+
+

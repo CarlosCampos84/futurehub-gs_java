@@ -1,20 +1,44 @@
 package br.com.futurehub.futurehubgs.config;
 
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OpenApiConfig {
+
+    private static final String SECURITY_SCHEME_NAME = "basicAuth";
+
     @Bean
     public OpenAPI futurehubOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
                         .title("FutureHub GS API")
                         .version("v1")
-                        .description("API REST para missões, mural de ideias, avaliações e rankings.")
-                        .contact(new Contact().name("FutureHub Team")));
+                        .description("""
+                                API REST do FutureHub: áreas de interesse, missões geradas pela IA,
+                                mural de ideias, avaliações e ranking gamificado.
+                                """)
+                        .contact(new Contact()
+                                .name("FutureHub Team")
+                                .email("contato@futurehub.com.br")
+                        )
+                )
+                // 🔐 Indica que, por padrão, os endpoints usam Basic Auth
+                .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
+                .components(new Components()
+                        .addSecuritySchemes(
+                                SECURITY_SCHEME_NAME,
+                                new SecurityScheme()
+                                        .name(SECURITY_SCHEME_NAME)
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("basic")
+                        )
+                );
     }
 }

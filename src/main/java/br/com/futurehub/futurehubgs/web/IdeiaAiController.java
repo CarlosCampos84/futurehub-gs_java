@@ -1,38 +1,56 @@
 package br.com.futurehub.futurehubgs.web;
 
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.com.futurehub.futurehubgs.application.dto.MissaoResponse;
+import br.com.futurehub.futurehubgs.application.service.MissaoService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
-@RequestMapping("/api/ai/ideias")
+@RequestMapping("/api/missoes")
+@RequiredArgsConstructor
 public class IdeiaAiController {
 
-    private final ChatClient chatClient;
+    private final MissaoService missaoService;
 
-    // 👇 ÚNICO construtor, o Spring injeta o Builder aqui
-    @Autowired
-    public IdeiaAiController(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
+    /**
+     * Gera uma nova missão com IA para uma determinada área.
+     *
+     * Exemplo:
+     *   POST /api/missoes/gerar?areaId=1
+     */
+    @PostMapping("/gerar")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<MissaoResponse> gerarMissao(@RequestParam Long areaId,
+                                                      UriComponentsBuilder uriBuilder) {
+
+        MissaoResponse resp = missaoService.gerarMissaoPorArea(areaId);
+
+        var location = uriBuilder.path("/api/missoes/{id}")
+                .buildAndExpand(resp.id())
+                .toUri();
+
+        return ResponseEntity.created(location).body(resp);
     }
 
-    @PostMapping("/sugerir")
-    public ResponseEntity<Map<String, Object>> sugerir(@RequestBody Map<String, String> body) {
-        String tema = body.getOrDefault("tema", "energia sustentável em escolas");
+    /**
+     * Lista missões (geradas ou não por IA), com paginação opcional por área.
+     *
+     * Exemplo:
+     *   GET /api/missoes?areaId=1&page=0&size=10
+     */
+    @GetMapping
+    public Page<MissaoResponse> listarPorArea(
+            @RequestParam(required = false) Long areaId,
+            @PageableDefault(size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC)
+            Pageable pageable) {
 
-        String conteudo = chatClient
-                .prompt("Liste 3 ideias curtas e práticas para: " + tema)
-                .call()
-                .content();
-
-        return ResponseEntity.ok(
-                Map.of(
-                        "tema", tema,
-                        "sugestoes", conteudo
-                )
-        );
+        return missaoService.listarPorArea(areaId, pageable);
     }
 }

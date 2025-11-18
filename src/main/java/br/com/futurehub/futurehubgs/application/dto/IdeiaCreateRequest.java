@@ -8,3 +8,4 @@ public record IdeiaCreateRequest(
         @NotNull Long idUsuario,
         Long idMissao
 ) {}
+

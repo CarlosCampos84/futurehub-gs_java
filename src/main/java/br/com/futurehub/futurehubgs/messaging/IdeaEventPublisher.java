@@ -18,3 +18,5 @@ public class IdeaEventPublisher {
         rabbitTemplate.convertAndSend(IDEAS_QUEUE, payload);
     }
 }
+
+

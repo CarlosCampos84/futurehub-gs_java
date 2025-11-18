@@ -11,9 +11,9 @@ spring:
     locale: pt_BR
     locale-resolver: accept_header
 
-  # 🧩 Datasource (H2 em arquivo em modo PostgreSQL)
+  # 🧩 Datasource (H2 em arquivo)
   datasource:
-    url: jdbc:h2:file:./data/fhdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE;DATABASE_TO_UPPER=false
+    url: jdbc:h2:file:./data/fhdb;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE;DATABASE_TO_UPPER=false
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -22,8 +22,8 @@ spring:
     console:
       enabled: true
       path: /h2-console
-      # habilite o acesso remoto apenas se precisar abrir em outra máquina:
       settings:
+        # habilite o acesso remoto apenas se precisar abrir em outra máquina
         web-allow-others: false
 
   # 🧾 JPA / Hibernate
@@ -33,12 +33,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # sem 'dialect', o Spring detecta H2 automaticamente
     open-in-view: false
     show-sql: false
     defer-datasource-initialization: true
 
-  # 🍃 MongoDB
+  # 🍃 MongoDB (dataset_ia)
   data:
     mongodb:
       uri: mongodb://localhost:27017/futurehub
@@ -69,12 +69,6 @@ spring:
       api-key: ${OPENAI_API_KEY:changeme}
       speech:
         enabled: false
-
-  # 🔐 Usuário DEV (apenas desenvolvimento)
-  security:
-    user:
-      name: admin
-      password: 123456
 
 # 🌐 Porta da aplicação
 server:
@@ -110,3 +104,5 @@ logging:
     org.springframework.web: INFO
     org.hibernate.SQL: OFF
     org.hibernate.orm.jdbc.bind: OFF
+
+

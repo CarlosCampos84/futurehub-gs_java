@@ -6,3 +6,5 @@ public interface AvaliacaoService {
 
     void avaliar(AvaliacaoCreateRequest req);
 }
+
+
