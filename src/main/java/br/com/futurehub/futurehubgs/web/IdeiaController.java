@@ -24,44 +24,53 @@ public class IdeiaController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ResponseEntity<IdeiaResponse> criar(@Valid @RequestBody IdeiaCreateRequest req,
-                                               UriComponentsBuilder uri) {
+    public ResponseEntity<IdeiaResponse> criar(
+            @Valid @RequestBody IdeiaCreateRequest req,
+            UriComponentsBuilder uri
+    ) {
         var resp = service.criar(req);
+
         var location = uri.path("/api/ideias/{id}")
                 .buildAndExpand(resp.id())
                 .toUri();
+
         return ResponseEntity.created(location).body(resp);
     }
 
     @GetMapping
-    public Page<IdeiaResponse> listar(@RequestParam(required = false) Long areaId,
-                                      @RequestParam(required = false) String q,
-                                      @PageableDefault(
-                                              size = 20,
-                                              sort = "createdAt",
-                                              direction = Sort.Direction.DESC
-                                      ) Pageable pageable) {
+    public Page<IdeiaResponse> listar(
+            @RequestParam(required = false) String areaId,
+            @RequestParam(required = false) String q,
+            @PageableDefault(
+                    size = 20,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            ) Pageable pageable
+    ) {
         return service.listar(areaId, q, pageable);
     }
 
     @GetMapping("/{id}")
-    public IdeiaResponse buscar(@PathVariable Long id) {
+    public IdeiaResponse buscar(@PathVariable String id) {
         return service.buscar(id);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public IdeiaResponse atualizar(@PathVariable Long id,
+    public IdeiaResponse atualizar(@PathVariable String id,
                                    @Valid @RequestBody IdeiaUpdateRequest req) {
         return service.atualizar(id, req);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable String id) {
         service.deletar(id);
         return ResponseEntity.noContent().build();
     }
 }
+
+
+
 
 

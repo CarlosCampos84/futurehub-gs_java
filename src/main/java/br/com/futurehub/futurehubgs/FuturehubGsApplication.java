@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 /**
  * Classe principal da aplicação Spring Boot.
+ * Agora com MongoDB como repositório principal.
  */
 @SpringBootApplication
 @EnableMongoRepositories(basePackages = "br.com.futurehub.futurehubgs.infrastructure.mongo")
@@ -15,5 +16,3 @@ public class FuturehubGsApplication {
         SpringApplication.run(FuturehubGsApplication.class, args);
     }
 }
-
-

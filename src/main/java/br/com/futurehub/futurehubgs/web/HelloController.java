@@ -7,10 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Locale;
 
-/**
- * Endpoint simples para testar internacionalização.
- * Ex.: GET /hello?lang=pt_BR | en | es
- */
 @RestController
 public class HelloController {
 
@@ -25,5 +21,7 @@ public class HelloController {
         return messageSource.getMessage("app.title", null, locale);
     }
 }
+
+
 
 

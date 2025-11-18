@@ -60,7 +60,6 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneric(Exception ex, WebRequest req) {
-        // Fallback genérico para evitar vazar stacktrace/erro feio
         String msg = i18n("error.internal", "Internal server error");
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -69,6 +68,7 @@ public class ApiExceptionHandler {
 
     // ===== Helpers =====
 
+    // ✅ overload com 3 parâmetros (usado nos handlers)
     private Map<String, Object> body(HttpStatus status, String msg, WebRequest req) {
         return body(status, msg, req, null);
     }
@@ -91,5 +91,7 @@ public class ApiExceptionHandler {
         return messageSource.getMessage(code, null, defaultMessage, locale);
     }
 }
+
+
 
 

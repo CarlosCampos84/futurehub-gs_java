@@ -1,11 +1,14 @@
 package br.com.futurehub.futurehubgs.infrastructure.repository;
 
 import br.com.futurehub.futurehubgs.domain.Avaliacao;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 
-public interface AvaliacaoRepository extends JpaRepository<Avaliacao, Long> {
+public interface AvaliacaoRepository extends MongoRepository<Avaliacao, String> {
 
-    List<Avaliacao> findByIdeia_Id(Long ideiaId);
+    List<Avaliacao> findByIdeiaId(String ideiaId);
 }
+
+
+

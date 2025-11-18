@@ -10,7 +10,6 @@ import br.com.futurehub.futurehubgs.messaging.AvaliacaoEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -18,28 +17,29 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AvaliacaoServiceImpl implements AvaliacaoService {
 
-    private final AvaliacaoRepository repo;
+    private final AvaliacaoRepository avaliacaoRepo;
     private final IdeiaRepository ideiaRepo;
     private final AvaliacaoEventPublisher avaliacaoEventPublisher;
 
     @Override
-    @Transactional
     @CacheEvict(value = "ideiasPorArea", allEntries = true)
     public void avaliar(AvaliacaoCreateRequest req) {
-        var ideia = ideiaRepo.findById(req.idIdeia())
+
+        Ideia ideia = ideiaRepo.findById(req.idIdeia())
                 .orElseThrow(() -> new IllegalArgumentException("erro.ideia.nao.encontrada"));
 
-        var avaliacao = Avaliacao.builder()
-                .ideia(ideia)
+        Avaliacao avaliacao = Avaliacao.builder()
+                .ideiaId(ideia.getId())
                 .nota(req.nota())
                 .dataAvaliacao(LocalDateTime.now())
                 .build();
 
-        repo.save(avaliacao);
+        avaliacaoRepo.save(avaliacao);
 
         atualizarEstatisticasIdeia(ideia, req.nota());
 
-        // evento assíncrono para ranking
+        ideiaRepo.save(ideia);
+
         avaliacaoEventPublisher.publishAvaliacao(ideia.getId(), req.nota());
     }
 
@@ -53,6 +53,8 @@ public class AvaliacaoServiceImpl implements AvaliacaoService {
 
         ideia.setTotalAvaliacoes(novoTotal);
         ideia.setMediaNotas(novaMedia);
-        // JPA faz o flush automático ao final da transação
     }
 }
+
+
+

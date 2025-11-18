@@ -4,16 +4,15 @@ import br.com.futurehub.futurehubgs.application.dto.RankingUsuarioResponse;
 import br.com.futurehub.futurehubgs.application.service.RankingService;
 import br.com.futurehub.futurehubgs.domain.Ideia;
 import br.com.futurehub.futurehubgs.domain.Ranking;
+import br.com.futurehub.futurehubgs.domain.Usuario;
 import br.com.futurehub.futurehubgs.infrastructure.repository.IdeiaRepository;
 import br.com.futurehub.futurehubgs.infrastructure.repository.RankingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -25,25 +24,31 @@ public class RankingServiceImpl implements RankingService {
     private final IdeiaRepository ideiaRepo;
 
     @Override
-    @Transactional
     @CacheEvict(value = "rankings", allEntries = true)
-    public void processarEventoAvaliacao(Long ideiaId, int nota) {
+    public void processarEventoAvaliacao(String ideiaIdStr, int nota) {
+
+        if (ideiaIdStr == null || ideiaIdStr.isBlank()) {
+            throw new IllegalArgumentException("IdeiaId inválido para ranking");
+        }
+
+        Long ideiaId;
+        try {
+            ideiaId = Long.valueOf(ideiaIdStr);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("IdeiaId inválido para ranking");
+        }
+
         Ideia ideia = ideiaRepo.findById(ideiaId)
                 .orElseThrow(() -> new IllegalArgumentException("Ideia não encontrada para ranking"));
 
-        var usuario = ideia.getAutor();
+        Usuario usuario = ideia.getAutor();
         if (usuario == null) {
             throw new IllegalArgumentException("Ideia sem autor não pode participar do ranking");
         }
 
         String periodoAtual = YearMonth.now().toString(); // ex.: 2025-11
 
-        // Busca em memória por usuário + período (sem exigir métodos extras no repository)
-        Ranking ranking = rankingRepo.findAll().stream()
-                .filter(r -> r.getUsuario() != null
-                        && r.getUsuario().getId().equals(usuario.getId())
-                        && periodoAtual.equals(r.getPeriodo()))
-                .findFirst()
+        Ranking ranking = rankingRepo.findByUsuario_IdAndPeriodo(usuario.getId(), periodoAtual)
                 .orElseGet(() -> Ranking.builder()
                         .usuario(usuario)
                         .pontuacaoTotal(0)
@@ -54,36 +59,39 @@ public class RankingServiceImpl implements RankingService {
         ranking.setPontuacaoTotal(ranking.getPontuacaoTotal() + nota);
         rankingRepo.save(ranking);
 
-        // opcional: acumulado geral no usuário (não mexe em repositório de usuário)
+        // Atualiza também pontos acumulados do usuário
         usuario.setPontos(usuario.getPontos() + nota);
+        // Como o usuário está associado à Ideia, JPA costuma gerenciar o flush.
+        // Se necessário, você pode persistir explicitamente num UsuarioRepository.
     }
 
     @Override
-    @Transactional(readOnly = true)
     @Cacheable(value = "rankings", key = "#periodo == null || #periodo.isBlank() ? 'current' : #periodo")
     public List<RankingUsuarioResponse> listarPorPeriodo(String periodo) {
         String p = (periodo == null || periodo.isBlank())
                 ? YearMonth.now().toString()
                 : periodo;
 
-        // filtra por período e ordena por pontuação desc
-        var rankings = rankingRepo.findAll().stream()
-                .filter(r -> p.equals(r.getPeriodo()))
+        List<Ranking> rankings = rankingRepo.findByPeriodoOrderByPontuacaoTotalDesc(p);
+
+        rankings = rankings.stream()
                 .sorted(Comparator.comparingInt(Ranking::getPontuacaoTotal).reversed())
                 .toList();
 
-        List<RankingUsuarioResponse> resposta = new ArrayList<>();
-        int posicao = 1;
-        for (Ranking r : rankings) {
-            resposta.add(new RankingUsuarioResponse(
-                    r.getUsuario() != null ? r.getUsuario().getId() : null,
-                    r.getUsuario() != null ? r.getUsuario().getNome() : null,
-                    r.getPontuacaoTotal(),
-                    r.getPeriodo(),
-                    posicao++
-            ));
-        }
-
-        return resposta;
+        int pos = 1;
+        return rankings.stream()
+                .map(r -> new RankingUsuarioResponse(
+                        r.getUsuario() != null ? r.getUsuario().getId() : null,
+                        r.getUsuario() != null ? r.getUsuario().getNome() : null,
+                        r.getPontuacaoTotal(),
+                        r.getPeriodo(),
+                        pos++
+                ))
+                .toList();
     }
 }
+
+
+
+
+

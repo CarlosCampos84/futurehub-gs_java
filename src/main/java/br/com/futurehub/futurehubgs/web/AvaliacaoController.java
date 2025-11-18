@@ -17,10 +17,15 @@ public class AvaliacaoController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ResponseEntity<Void> avaliar(@Valid @RequestBody AvaliacaoCreateRequest req) {
+    public ResponseEntity<Void> avaliar(
+            @Valid @RequestBody AvaliacaoCreateRequest req
+    ) {
         service.avaliar(req);
         return ResponseEntity.noContent().build();
     }
 }
+
+
+
 
 

@@ -11,66 +11,38 @@ spring:
     locale: pt_BR
     locale-resolver: accept_header
 
-  # 🧩 Datasource (H2 em arquivo)
-  datasource:
-    url: jdbc:h2:file:./data/fhdb;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE;DATABASE_TO_UPPER=false
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        # habilite o acesso remoto apenas se precisar abrir em outra máquina
-        web-allow-others: false
-
-  # 🧾 JPA / Hibernate
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-        # sem 'dialect', o Spring detecta H2 automaticamente
-    open-in-view: false
-    show-sql: false
-    defer-datasource-initialization: true
-
-  # 🍃 MongoDB (dataset_ia)
+  # 🍃 MongoDB — agora é o banco principal
   data:
     mongodb:
       uri: mongodb://localhost:27017/futurehub
 
-  # ⚡ Cache (Caffeine) + métricas
+  # ⚡ Cache
   cache:
     type: caffeine
-    cache-names: [areas, missoesPorArea, ideias, rankings]
+    cache-names: [areas, missoesPorArea, ideiasPorArea, rankings]
     caffeine:
-      # 'recordStats' resolve os avisos de métricas dos caches
       spec: maximumSize=500,expireAfterWrite=10m,recordStats
 
-  # 🎨 Thymeleaf (dev)
+  # 🎨 Thymeleaf
   thymeleaf:
     cache: false
     check-template-location: false
 
-  # 🐇 RabbitMQ (usar container Docker em localhost:5672)
+  # 🐇 RabbitMQ
   rabbitmq:
     host: localhost
     port: 5672
     username: guest
     password: guest
 
-  # 🧠 Spring AI (OpenAI)
+  # 🧠 Spring AI
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:changeme}
       speech:
         enabled: false
 
-# 🌐 Porta da aplicação
+# 🌐 Porta
 server:
   port: 8081
   error:
@@ -87,22 +59,15 @@ management:
   endpoint:
     health:
       show-details: when_authorized
-  health:
-    rabbit:
-      enabled: true   # health do RabbitMQ ATIVO
 
-# 📖 Springdoc (Swagger UI)
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
 
-# 🪵 Logging útil em DEV (opcional)
-logging:
-  level:
-    org.springframework.web: INFO
-    org.hibernate.SQL: OFF
-    org.hibernate.orm.jdbc.bind: OFF
+
+
+
 
 

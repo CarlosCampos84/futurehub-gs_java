@@ -1,10 +1,10 @@
 package br.com.futurehub.futurehubgs.domain;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "areas")
+@Document(collection = "areas")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,12 +13,11 @@ import lombok.*;
 public class Area {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false, unique = true, length = 120)
     private String nome;
 
-    @Column(length = 500)
     private String descricao;
 }
+
+

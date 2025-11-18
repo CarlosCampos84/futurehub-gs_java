@@ -10,13 +10,11 @@ public interface IdeiaService {
 
     IdeiaResponse criar(IdeiaCreateRequest req);
 
-    Page<IdeiaResponse> listar(Long areaId, String q, Pageable pageable);
+    Page<IdeiaResponse> listar(String areaId, String q, Pageable pageable);
 
-    IdeiaResponse buscar(Long id);
+    IdeiaResponse buscar(String id);
 
-    IdeiaResponse atualizar(Long id, IdeiaUpdateRequest req);
+    IdeiaResponse atualizar(String id, IdeiaUpdateRequest req);
 
-    void deletar(Long id);
+    void deletar(String id);
 }
-
-

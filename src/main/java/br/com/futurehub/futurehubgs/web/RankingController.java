@@ -8,9 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Endpoints de leitura de ranking.
- */
 @RestController
 @RequestMapping("/api/rankings")
 @RequiredArgsConstructor
@@ -20,7 +17,13 @@ public class RankingController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public List<RankingUsuarioResponse> listar(@RequestParam(required = false) String periodo) {
+    public List<RankingUsuarioResponse> listar(
+            @RequestParam(required = false) String periodo
+    ) {
         return rankingService.listarPorPeriodo(periodo);
     }
 }
+
+
+
+

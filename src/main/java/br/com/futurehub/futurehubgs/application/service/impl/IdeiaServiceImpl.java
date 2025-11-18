@@ -6,6 +6,7 @@ import br.com.futurehub.futurehubgs.application.dto.IdeiaUpdateRequest;
 import br.com.futurehub.futurehubgs.application.service.IdeiaService;
 import br.com.futurehub.futurehubgs.domain.Ideia;
 import br.com.futurehub.futurehubgs.domain.Missao;
+import br.com.futurehub.futurehubgs.domain.Usuario;
 import br.com.futurehub.futurehubgs.infrastructure.repository.IdeiaRepository;
 import br.com.futurehub.futurehubgs.infrastructure.repository.MissaoRepository;
 import br.com.futurehub.futurehubgs.infrastructure.repository.UsuarioRepository;
@@ -17,7 +18,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -45,10 +45,10 @@ public class IdeiaServiceImpl implements IdeiaService {
     }
 
     @Override
-    @Transactional
     @CacheEvict(value = "ideiasPorArea", allEntries = true)
     public IdeiaResponse criar(IdeiaCreateRequest req) {
-        var autor = usuarioRepo.findById(req.idUsuario())
+
+        Usuario autor = usuarioRepo.findById(req.idUsuario())
                 .orElseThrow(() -> new IllegalArgumentException("erro.usuario.nao.encontrado"));
 
         Missao missao = null;
@@ -57,7 +57,7 @@ public class IdeiaServiceImpl implements IdeiaService {
                     .orElseThrow(() -> new IllegalArgumentException("erro.missao.nao.encontrada"));
         }
 
-        var ideia = Ideia.builder()
+        Ideia ideia = Ideia.builder()
                 .titulo(req.titulo())
                 .descricao(req.descricao())
                 .autor(autor)
@@ -68,6 +68,7 @@ public class IdeiaServiceImpl implements IdeiaService {
                 .build();
 
         ideia = ideiaRepo.save(ideia);
+
         // evento assíncrono (ranking, cache, etc.)
         publisher.publishCreated(ideia);
 
@@ -75,14 +76,13 @@ public class IdeiaServiceImpl implements IdeiaService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     @Cacheable(
             value = "ideiasPorArea",
             key = "#areaId + '-' + (#q == null ? '' : #q.trim()) + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
     )
     public Page<IdeiaResponse> listar(Long areaId, String q, Pageable pageable) {
-        Page<Ideia> page;
 
+        Page<Ideia> page;
         String query = (q == null || q.isBlank()) ? null : q.trim();
 
         if (areaId != null && query != null) {
@@ -101,37 +101,47 @@ public class IdeiaServiceImpl implements IdeiaService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public IdeiaResponse buscar(Long id) {
-        var ideia = ideiaRepo.findById(id)
+        Ideia ideia = ideiaRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("erro.ideia.nao.encontrada"));
 
         return toResp(ideia);
     }
 
     @Override
-    @Transactional
     @CacheEvict(value = "ideiasPorArea", allEntries = true)
     public IdeiaResponse atualizar(Long id, IdeiaUpdateRequest req) {
-        var ideia = ideiaRepo.findById(id)
+        Ideia ideia = ideiaRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("erro.ideia.nao.encontrada"));
 
         ideia.setTitulo(req.titulo());
         ideia.setDescricao(req.descricao());
+        // flush automático ao final da transação (JPA)
 
-        // JPA faz o flush automático ao final da transação
         return toResp(ideia);
     }
 
     @Override
-    @Transactional
     @CacheEvict(value = "ideiasPorArea", allEntries = true)
-    public void deletar(Long id) {
+    public void deletar(String id) {
+
+        Long idLong;
         try {
-            ideiaRepo.deleteById(id);
+            idLong = Long.valueOf(id);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("erro.ideia.id.invalido");
+        }
+
+        try {
+            ideiaRepo.deleteById(idLong);
         } catch (EmptyResultDataAccessException e) {
             throw new IllegalArgumentException("erro.ideia.nao.encontrada");
         }
     }
 }
+
+
+
+
+
 

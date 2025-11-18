@@ -1,49 +1,30 @@
 package br.com.futurehub.futurehubgs.domain;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "usuarios_missoes")
+@Document(collection = "usuarios_missoes")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@IdClass(UsuarioMissao.PK.class)
 public class UsuarioMissao {
 
     @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario")
-    private Usuario usuario;
+    private String id;
 
-    @Id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_missao")
-    private Missao missao;
+    private String usuarioId;
+
+    private String missaoId;
 
     private LocalDateTime dataConclusao;
 
-    @Column(length = 30) // EM_ANDAMENTO, CONCLUIDA
     private String status;
-
-    @PrePersist
-    public void prePersist() {
-        if (status == null) {
-            status = "EM_ANDAMENTO";
-        }
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class PK implements Serializable {
-        private Long usuario;
-        private Long missao;
-    }
 }
+
+
+

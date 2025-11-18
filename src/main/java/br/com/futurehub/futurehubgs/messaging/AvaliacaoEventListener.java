@@ -10,7 +10,7 @@ import static br.com.futurehub.futurehubgs.config.RabbitConfig.AVALIACOES_QUEUE;
 
 /**
  * Listener de eventos de avaliação.
- * Responsabilidade única: receber mensagem da fila e delegar para o RankingService.
+ * Responsabilidade: ler mensagem da fila e delegar para RankingService.
  */
 @Component
 @Slf4j
@@ -23,7 +23,7 @@ public class AvaliacaoEventListener {
     public void onMessage(String payload) {
         try {
             String[] parts = payload.split(";");
-            Long ideiaId = Long.parseLong(parts[0]);
+            String ideiaId = parts[0];
             int nota = Integer.parseInt(parts[1]);
 
             log.info("Evento de avaliação recebido: ideiaId={}, nota={}", ideiaId, nota);
@@ -33,3 +33,6 @@ public class AvaliacaoEventListener {
         }
     }
 }
+
+
+

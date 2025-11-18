@@ -32,7 +32,6 @@ public class InternationalizationConfig implements WebMvcConfigurer {
      * - messages.properties
      * - messages_pt_BR.properties
      * - messages_es_ES.properties
-     * que estão em src/main/resources.
      */
     @Bean
     public MessageSource messageSource() {
@@ -54,3 +53,8 @@ public class InternationalizationConfig implements WebMvcConfigurer {
         registry.addInterceptor(i);
     }
 }
+
+
+
+
+

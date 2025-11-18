@@ -2,6 +2,7 @@ package br.com.futurehub.futurehubgs.application.service.impl;
 
 import br.com.futurehub.futurehubgs.application.dto.MissaoResponse;
 import br.com.futurehub.futurehubgs.application.service.MissaoService;
+import br.com.futurehub.futurehubgs.domain.Area;
 import br.com.futurehub.futurehubgs.domain.Missao;
 import br.com.futurehub.futurehubgs.infrastructure.repository.AreaRepository;
 import br.com.futurehub.futurehubgs.infrastructure.repository.MissaoRepository;
@@ -12,7 +13,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -38,10 +38,20 @@ public class MissaoServiceImpl implements MissaoService {
     }
 
     @Override
-    @Transactional
     @CacheEvict(value = "missoesPorArea", allEntries = true)
-    public MissaoResponse gerarMissaoPorArea(Long areaId) {
-        var area = areaRepo.findById(areaId)
+    public MissaoResponse gerarMissaoPorArea(String areaId) {
+        if (areaId == null || areaId.isBlank()) {
+            throw new IllegalArgumentException("erro.area.id.invalido");
+        }
+
+        Long areaIdLong;
+        try {
+            areaIdLong = Long.valueOf(areaId);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("erro.area.id.invalido");
+        }
+
+        Area area = areaRepo.findById(areaIdLong)
                 .orElseThrow(() -> new IllegalArgumentException("erro.area.nao.encontrada"));
 
         ChatClient chatClient = chatClientBuilder.build();
@@ -65,19 +75,19 @@ public class MissaoServiceImpl implements MissaoService {
         String objetivo = "Aprender algo novo na área de " + area.getNome();
         String moral = "Compartilhar conhecimento gera impacto positivo.";
 
-        for (String line : content.split("\\r?\\n")) {
-            String l = line.trim();
-            String upper = l.toUpperCase();
-            if (upper.startsWith("DESCRICAO:")) {
-                descricao = l.substring("DESCRICAO:".length()).trim();
-            } else if (upper.startsWith("OBJETIVO:")) {
-                objetivo = l.substring("OBJETIVO:".length()).trim();
-            } else if (upper.startsWith("MORAL:")) {
-                moral = l.substring("MORAL:".length()).trim();
+        for (String l : content.split("\\r?\\n")) {
+            String line = l.trim();
+            String up = line.toUpperCase();
+            if (up.startsWith("DESCRICAO:")) {
+                descricao = line.substring("DESCRICAO:".length()).trim();
+            } else if (up.startsWith("OBJETIVO:")) {
+                objetivo = line.substring("OBJETIVO:".length()).trim();
+            } else if (up.startsWith("MORAL:")) {
+                moral = line.substring("MORAL:".length()).trim();
             }
         }
 
-        var missao = Missao.builder()
+        Missao missao = Missao.builder()
                 .descricao(descricao)
                 .objetivo(objetivo)
                 .moral(moral)
@@ -96,11 +106,17 @@ public class MissaoServiceImpl implements MissaoService {
             value = "missoesPorArea",
             key = "#areaId + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
     )
-    public Page<MissaoResponse> listarPorArea(Long areaId, Pageable pageable) {
+    public Page<MissaoResponse> listarPorArea(String areaId, Pageable pageable) {
         Page<Missao> page;
 
-        if (areaId != null) {
-            page = missaoRepo.findByArea_Id(areaId, pageable);
+        if (areaId != null && !areaId.isBlank()) {
+            Long areaIdLong;
+            try {
+                areaIdLong = Long.valueOf(areaId);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("erro.area.id.invalido");
+            }
+            page = missaoRepo.findByArea_Id(areaIdLong, pageable);
         } else {
             page = missaoRepo.findAll(pageable);
         }
@@ -108,5 +124,8 @@ public class MissaoServiceImpl implements MissaoService {
         return page.map(this::toResponse);
     }
 }
+
+
+
 
 

@@ -1,12 +1,12 @@
 package br.com.futurehub.futurehubgs.domain;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "avaliacoes")
+@Document(collection = "avaliacoes")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,23 +15,17 @@ import java.time.LocalDateTime;
 public class Avaliacao {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_ideia", nullable = false)
-    private Ideia ideia;
+    private String ideiaId;
 
-    @Column(nullable = false)
-    private Integer nota; // 1..5
+    private Integer nota;
 
-    @Column(nullable = false)
     private LocalDateTime dataAvaliacao;
 
-    @PrePersist
-    public void prePersist() {
-        if (dataAvaliacao == null) {
-            dataAvaliacao = LocalDateTime.now();
-        }
-    }
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
+
+
+

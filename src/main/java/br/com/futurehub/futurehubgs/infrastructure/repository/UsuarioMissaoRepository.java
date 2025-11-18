@@ -1,11 +1,15 @@
 package br.com.futurehub.futurehubgs.infrastructure.repository;
 
 import br.com.futurehub.futurehubgs.domain.UsuarioMissao;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;
 
-public interface UsuarioMissaoRepository extends JpaRepository<UsuarioMissao, UsuarioMissao.PK> {
+public interface UsuarioMissaoRepository extends MongoRepository<UsuarioMissao, String> {
 
-    Optional<UsuarioMissao> findByUsuario_IdAndMissao_Id(Long usuarioId, Long missaoId);
+    Optional<UsuarioMissao> findByUsuarioIdAndMissaoId(String usuarioId, String missaoId);
 }
+
+
+
+

@@ -29,7 +29,6 @@ public class OpenApiConfig {
                                 .email("contato@futurehub.com.br")
                         )
                 )
-                // 🔐 Indica que, por padrão, os endpoints usam Basic Auth
                 .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
                 .components(new Components()
                         .addSecuritySchemes(
@@ -42,3 +41,8 @@ public class OpenApiConfig {
                 );
     }
 }
+
+
+
+
+

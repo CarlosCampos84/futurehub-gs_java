@@ -1,10 +1,10 @@
 package br.com.futurehub.futurehubgs.domain;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "usuarios")
+@Document(collection = "usuarios")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,29 +13,19 @@ import lombok.*;
 public class Usuario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false, length = 120)
     private String nome;
 
-    @Column(nullable = false, unique = true, length = 180)
     private String email;
 
-    @Column(nullable = false, length = 255)
     private String senhaHash;
 
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private Role role = Role.ROLE_USER;
+    private Role role;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_area_interesse")
-    private Area areaInteresse;
+    private String areaInteresseId;
 
     @Builder.Default
-    @Column(nullable = false)
     private Integer pontos = 0;
 
     public enum Role {

@@ -19,18 +19,13 @@ public class IdeiaAiController {
 
     private final MissaoService missaoService;
 
-    /**
-     * Gera uma nova missão com IA para uma determinada área.
-     *
-     * Exemplo:
-     *   POST /api/missoes/gerar?areaId=1
-     */
     @PostMapping("/gerar")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ResponseEntity<MissaoResponse> gerarMissao(@RequestParam Long areaId,
-                                                      UriComponentsBuilder uriBuilder) {
-
-        MissaoResponse resp = missaoService.gerarMissaoPorArea(areaId);
+    public ResponseEntity<MissaoResponse> gerarMissao(
+            @RequestParam String areaId,
+            UriComponentsBuilder uriBuilder
+    ) {
+        var resp = missaoService.gerarMissaoPorArea(areaId);
 
         var location = uriBuilder.path("/api/missoes/{id}")
                 .buildAndExpand(resp.id())
@@ -39,18 +34,16 @@ public class IdeiaAiController {
         return ResponseEntity.created(location).body(resp);
     }
 
-    /**
-     * Lista missões (geradas ou não por IA), com paginação opcional por área.
-     *
-     * Exemplo:
-     *   GET /api/missoes?areaId=1&page=0&size=10
-     */
     @GetMapping
     public Page<MissaoResponse> listarPorArea(
-            @RequestParam(required = false) Long areaId,
+            @RequestParam(required = false) String areaId,
             @PageableDefault(size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC)
-            Pageable pageable) {
-
+            Pageable pageable
+    ) {
         return missaoService.listarPorArea(areaId, pageable);
     }
 }
+
+
+
+

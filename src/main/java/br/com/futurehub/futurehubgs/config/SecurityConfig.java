@@ -48,11 +48,6 @@ public class SecurityConfig {
                 // CSRF desabilitado em DEV (facilita testes com POST/PUT/DELETE via Swagger / tools)
                 .csrf(csrf -> csrf.disable())
 
-                // Necessário para o H2 abrir em frame no navegador
-                .headers(headers -> headers
-                        .frameOptions(frame -> frame.disable())
-                )
-
                 .authorizeHttpRequests(auth -> auth
                         // Pré-flight CORS (OPTIONS) sempre liberado
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -64,31 +59,36 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // H2 Console liberado em DEV
-                        .requestMatchers("/h2-console/**").permitAll()
-
                         // Actuator (apenas health/info públicos)
                         .requestMatchers(HttpMethod.GET,
                                 "/actuator/health",
                                 "/actuator/info"
                         ).permitAll()
 
-                        // Endpoints GET públicos da aplicação
+                        // Endpoint simples de teste de i18n
+                        .requestMatchers(HttpMethod.GET, "/hello").permitAll()
+
+                        // Endpoints GET públicos da API (mural e ranking visíveis sem login)
                         .requestMatchers(HttpMethod.GET,
-                                "/areas/**",
-                                "/missoes/**",
-                                "/ideias/**"
+                                "/api/ideias/**",
+                                "/api/missoes/**",
+                                "/api/rankings/**"
                         ).permitAll()
 
                         // Qualquer outra requisição exige autenticação
                         .anyRequest().authenticated()
                 )
 
-                // Basic Auth simples (popup do navegador)
+                // Basic Auth simples (popup do navegador / auth no Swagger)
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
 }
+
+
+
+
+
 
 
