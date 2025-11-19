@@ -17,44 +17,47 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AvaliacaoServiceImpl implements AvaliacaoService {
 
-    private final AvaliacaoRepository avaliacaoRepo;
     private final IdeiaRepository ideiaRepo;
-    private final AvaliacaoEventPublisher avaliacaoEventPublisher;
+    private final AvaliacaoRepository avaliacaoRepo;
+    private final AvaliacaoEventPublisher publisher;
 
     @Override
     @CacheEvict(value = "ideiasPorArea", allEntries = true)
     public void avaliar(AvaliacaoCreateRequest req) {
 
-        Ideia ideia = ideiaRepo.findById(req.idIdeia())
+        // ID da ideia já é String no DTO
+        String ideiaId = req.idIdeia();
+
+        Ideia ideia = ideiaRepo.findById(ideiaId)
                 .orElseThrow(() -> new IllegalArgumentException("erro.ideia.nao.encontrada"));
 
+        // Cria a avaliação (comentário opcional, se existir na entidade)
         Avaliacao avaliacao = Avaliacao.builder()
                 .ideiaId(ideia.getId())
                 .nota(req.nota())
-                .dataAvaliacao(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         avaliacaoRepo.save(avaliacao);
 
-        atualizarEstatisticasIdeia(ideia, req.nota());
-
-        ideiaRepo.save(ideia);
-
-        avaliacaoEventPublisher.publishAvaliacao(ideia.getId(), req.nota());
-    }
-
-    private void atualizarEstatisticasIdeia(Ideia ideia, int novaNota) {
-        int totalAnterior = ideia.getTotalAvaliacoes();
+        // Atualiza média e total de avaliações da ideia
+        int totalAnterior = ideia.getTotalAvaliacoes() != null ? ideia.getTotalAvaliacoes() : 0;
         double mediaAnterior = ideia.getMediaNotas() != null ? ideia.getMediaNotas() : 0.0;
 
-        int novoTotal = totalAnterior + 1;
-        double somaNotas = mediaAnterior * totalAnterior + novaNota;
-        double novaMedia = somaNotas / novoTotal;
+        int totalNovo = totalAnterior + 1;
+        double somaAnterior = mediaAnterior * totalAnterior;
+        double mediaNova = (somaAnterior + req.nota()) / totalNovo;
 
-        ideia.setTotalAvaliacoes(novoTotal);
-        ideia.setMediaNotas(novaMedia);
+        ideia.setTotalAvaliacoes(totalNovo);
+        ideia.setMediaNotas(mediaNova);
+        ideiaRepo.save(ideia);
+
+        // Dispara evento para o ranking (consumido pelo AvaliacaoEventListener)
+        publisher.publishAvaliacao(ideia.getId(), req.nota());
     }
 }
+
+
 
 
 

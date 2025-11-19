@@ -14,12 +14,14 @@ import br.com.futurehub.futurehubgs.messaging.IdeaEventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +33,21 @@ public class IdeiaServiceImpl implements IdeiaService {
     private final IdeaEventPublisher publisher;
 
     private IdeiaResponse toResp(Ideia i) {
+
+        String autorNome = null;
+        if (i.getAutorId() != null) {
+            autorNome = usuarioRepo.findById(i.getAutorId())
+                    .map(Usuario::getNome)
+                    .orElse(null);
+        }
+
         return new IdeiaResponse(
                 i.getId(),
                 i.getTitulo(),
                 i.getDescricao(),
-                i.getAutor() != null ? i.getAutor().getId() : null,
-                i.getAutor() != null ? i.getAutor().getNome() : null,
-                i.getMissao() != null ? i.getMissao().getId() : null,
+                i.getAutorId(),
+                autorNome,
+                i.getMissaoId(),
                 i.getMediaNotas(),
                 i.getTotalAvaliacoes(),
                 i.getCreatedAt()
@@ -60,8 +70,8 @@ public class IdeiaServiceImpl implements IdeiaService {
         Ideia ideia = Ideia.builder()
                 .titulo(req.titulo())
                 .descricao(req.descricao())
-                .autor(autor)
-                .missao(missao)
+                .autorId(autor.getId())
+                .missaoId(missao != null ? missao.getId() : null)
                 .mediaNotas(0.0)
                 .totalAvaliacoes(0)
                 .createdAt(LocalDateTime.now())
@@ -69,7 +79,7 @@ public class IdeiaServiceImpl implements IdeiaService {
 
         ideia = ideiaRepo.save(ideia);
 
-        // evento assíncrono (ranking, cache, etc.)
+        // evento assíncrono (RabbitMQ)
         publisher.publishCreated(ideia);
 
         return toResp(ideia);
@@ -80,43 +90,64 @@ public class IdeiaServiceImpl implements IdeiaService {
             value = "ideiasPorArea",
             key = "#areaId + '-' + (#q == null ? '' : #q.trim()) + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
     )
-    public Page<IdeiaResponse> listar(Long areaId, String q, Pageable pageable) {
+    public Page<IdeiaResponse> listar(String areaId, String q, Pageable pageable) {
 
-        Page<Ideia> page;
-        String query = (q == null || q.isBlank()) ? null : q.trim();
+        List<Ideia> todas = ideiaRepo.findAll();
+        String query = (q == null || q.isBlank()) ? null : q.trim().toLowerCase();
 
-        if (areaId != null && query != null) {
-            page = ideiaRepo.findByAutor_AreaInteresse_IdAndTituloContainingIgnoreCase(
-                    areaId, query, pageable
-            );
-        } else if (areaId != null) {
-            page = ideiaRepo.findByAutor_AreaInteresse_Id(areaId, pageable);
-        } else if (query != null) {
-            page = ideiaRepo.findByTituloContainingIgnoreCase(query, pageable);
-        } else {
-            page = ideiaRepo.findAll(pageable);
+        List<Ideia> filtradas = todas.stream()
+                .filter(i -> {
+                    boolean matchArea = true;
+                    if (areaId != null && !areaId.isBlank()) {
+                        Usuario autor = usuarioRepo.findById(i.getAutorId()).orElse(null);
+                        matchArea = autor != null
+                                && autor.getAreaInteresseId() != null
+                                && areaId.equals(autor.getAreaInteresseId());
+                    }
+
+                    boolean matchTitulo = true;
+                    if (query != null) {
+                        matchTitulo = i.getTitulo() != null
+                                && i.getTitulo().toLowerCase().contains(query);
+                    }
+
+                    return matchArea && matchTitulo;
+                })
+                .sorted(Comparator.comparing(Ideia::getCreatedAt).reversed())
+                .toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtradas.size());
+        if (start > end) {
+            return new PageImpl<>(List.of(), pageable, filtradas.size());
         }
 
-        return page.map(this::toResp);
+        List<IdeiaResponse> content = filtradas.subList(start, end)
+                .stream()
+                .map(this::toResp)
+                .toList();
+
+        return new PageImpl<>(content, pageable, filtradas.size());
     }
 
     @Override
-    public IdeiaResponse buscar(Long id) {
+    public IdeiaResponse buscar(String id) {
         Ideia ideia = ideiaRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("erro.ideia.nao.encontrada"));
-
         return toResp(ideia);
     }
 
     @Override
     @CacheEvict(value = "ideiasPorArea", allEntries = true)
-    public IdeiaResponse atualizar(Long id, IdeiaUpdateRequest req) {
+    public IdeiaResponse atualizar(String id, IdeiaUpdateRequest req) {
+
         Ideia ideia = ideiaRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("erro.ideia.nao.encontrada"));
 
         ideia.setTitulo(req.titulo());
         ideia.setDescricao(req.descricao());
-        // flush automático ao final da transação (JPA)
+
+        ideia = ideiaRepo.save(ideia);
 
         return toResp(ideia);
     }
@@ -125,20 +156,18 @@ public class IdeiaServiceImpl implements IdeiaService {
     @CacheEvict(value = "ideiasPorArea", allEntries = true)
     public void deletar(String id) {
 
-        Long idLong;
-        try {
-            idLong = Long.valueOf(id);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("erro.ideia.id.invalido");
-        }
-
-        try {
-            ideiaRepo.deleteById(idLong);
-        } catch (EmptyResultDataAccessException e) {
+        if (!ideiaRepo.existsById(id)) {
             throw new IllegalArgumentException("erro.ideia.nao.encontrada");
         }
+
+        ideiaRepo.deleteById(id);
     }
 }
+
+
+
+
+
 
 
 

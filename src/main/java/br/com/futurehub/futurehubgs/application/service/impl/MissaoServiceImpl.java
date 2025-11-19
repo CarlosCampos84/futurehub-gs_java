@@ -25,33 +25,35 @@ public class MissaoServiceImpl implements MissaoService {
     private final ChatClient.Builder chatClientBuilder;
 
     private MissaoResponse toResponse(Missao m) {
+
+        String areaNome = null;
+        if (m.getAreaId() != null) {
+            areaNome = areaRepo.findById(m.getAreaId())
+                    .map(Area::getNome)
+                    .orElse(null);
+        }
+
+        LocalDateTime dataCriacao = m.getDataCriacao() != null
+                ? m.getDataCriacao()
+                : m.getCreatedAt();
+
         return new MissaoResponse(
                 m.getId(),
                 m.getDescricao(),
                 m.getObjetivo(),
                 m.getMoral(),
-                m.getArea() != null ? m.getArea().getId() : null,
-                m.getArea() != null ? m.getArea().getNome() : null,
+                m.getAreaId(),
+                areaNome,
                 m.isGeradaPorIa(),
-                m.getDataCriacao()
+                dataCriacao
         );
     }
 
     @Override
     @CacheEvict(value = "missoesPorArea", allEntries = true)
     public MissaoResponse gerarMissaoPorArea(String areaId) {
-        if (areaId == null || areaId.isBlank()) {
-            throw new IllegalArgumentException("erro.area.id.invalido");
-        }
 
-        Long areaIdLong;
-        try {
-            areaIdLong = Long.valueOf(areaId);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("erro.area.id.invalido");
-        }
-
-        Area area = areaRepo.findById(areaIdLong)
+        var area = areaRepo.findById(areaId)
                 .orElseThrow(() -> new IllegalArgumentException("erro.area.nao.encontrada"));
 
         ChatClient chatClient = chatClientBuilder.build();
@@ -91,13 +93,14 @@ public class MissaoServiceImpl implements MissaoService {
                 .descricao(descricao)
                 .objetivo(objetivo)
                 .moral(moral)
-                .area(area)
+                .areaId(area.getId())
                 .dataCriacao(LocalDateTime.now())
                 .status("ATIVA")
                 .geradaPorIa(true)
                 .build();
 
         missao = missaoRepo.save(missao);
+
         return toResponse(missao);
     }
 
@@ -107,16 +110,11 @@ public class MissaoServiceImpl implements MissaoService {
             key = "#areaId + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort"
     )
     public Page<MissaoResponse> listarPorArea(String areaId, Pageable pageable) {
+
         Page<Missao> page;
 
         if (areaId != null && !areaId.isBlank()) {
-            Long areaIdLong;
-            try {
-                areaIdLong = Long.valueOf(areaId);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("erro.area.id.invalido");
-            }
-            page = missaoRepo.findByArea_Id(areaIdLong, pageable);
+            page = missaoRepo.findByAreaId(areaId, pageable);
         } else {
             page = missaoRepo.findAll(pageable);
         }
@@ -124,6 +122,7 @@ public class MissaoServiceImpl implements MissaoService {
         return page.map(this::toResponse);
     }
 }
+
 
 
 
