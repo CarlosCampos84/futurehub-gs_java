@@ -24,15 +24,20 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArg(IllegalArgumentException ex, WebRequest req) {
+
+        // ✅ Se a mensagem for uma key de i18n (ex.: "erro.area.nao.encontrada"),
+        //    traduz; senão devolve o próprio texto.
+        String msg = resolveMessage(ex.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(body(HttpStatus.BAD_REQUEST, ex.getMessage(), req));
+                .body(body(HttpStatus.BAD_REQUEST, msg, req));
     }
 
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<?> handleNoSuchElement(NoSuchElementException ex, WebRequest req) {
         String msg = ex.getMessage() != null
-                ? ex.getMessage()
+                ? resolveMessage(ex.getMessage())
                 : i18n("error.bad_request", "Requisição inválida");
 
         return ResponseEntity
@@ -90,7 +95,28 @@ public class ApiExceptionHandler {
         var locale = LocaleContextHolder.getLocale();
         return messageSource.getMessage(code, null, defaultMessage, locale);
     }
+
+    /**
+     * Tenta resolver uma mensagem vinda da exception como código i18n.
+     * Ex.: "erro.area.nao.encontrada" -> mensagem traduzida do bundle.
+     * Se não achar, devolve o próprio texto.
+     */
+    private String resolveMessage(String codeOrMessage) {
+        if (codeOrMessage == null || codeOrMessage.isBlank()) {
+            return i18n("error.bad_request", "Requisição inválida");
+        }
+        var locale = LocaleContextHolder.getLocale();
+        try {
+            return messageSource.getMessage(codeOrMessage, null, codeOrMessage, locale);
+        } catch (Exception e) {
+            // não é um código conhecido → devolve a string original
+            return codeOrMessage;
+        }
+    }
 }
+
+
+
 
 
 

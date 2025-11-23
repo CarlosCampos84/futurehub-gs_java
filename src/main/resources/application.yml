@@ -11,7 +11,7 @@ spring:
     locale: pt_BR
     locale-resolver: accept_header
 
-  # 🍃 MongoDB — agora é o banco principal
+  # 🍃 MongoDB — banco principal
   data:
     mongodb:
       uri: mongodb://localhost:27017/futurehub
@@ -38,11 +38,12 @@ spring:
   # 🧠 Spring AI
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY:changeme}
+      # chave fixa para DEV (sem variável de ambiente)
+      api-key: "changeme"
       speech:
         enabled: false
 
-# 🌐 Porta
+# 🌐 Porta HTTP principal
 server:
   port: 8081
   error:
@@ -65,9 +66,3 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
-
-
-
-
-
-

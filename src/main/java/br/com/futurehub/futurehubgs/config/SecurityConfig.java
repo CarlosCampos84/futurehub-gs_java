@@ -19,8 +19,10 @@ public class SecurityConfig {
     /**
      * Usuários de autenticação (camada de segurança, não é a entidade de domínio Usuario).
      *
-     * - admin / senha: admin123  -> ROLE_ADMIN, ROLE_USER
-     * - user  / senha: user123   -> ROLE_USER
+     * Logins padronizados da aplicação FutureHub:
+     *
+     * - admin / senha: 123456  -> ROLE_ADMIN, ROLE_USER
+     * - user  / senha: 1234    -> ROLE_USER
      *
      * Em produção, trocar para:
      *  - senhas criptografadas (BCrypt)
@@ -29,12 +31,12 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         UserDetails admin = User.withUsername("admin")
-                .password("{noop}admin123") // {noop} = sem encoder (apenas para DEV / demo)
+                .password("{noop}123456") // {noop} = sem encoder (apenas para DEV / demo)
                 .roles("ADMIN", "USER")
                 .build();
 
         UserDetails user = User.withUsername("user")
-                .password("{noop}user123")
+                .password("{noop}1234")
                 .roles("USER")
                 .build();
 
@@ -68,6 +70,9 @@ public class SecurityConfig {
                         // Endpoint simples de teste de i18n
                         .requestMatchers(HttpMethod.GET, "/hello").permitAll()
 
+                        // 👉 Novo: cadastro de usuário é público (não precisa estar logado)
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+
                         // Endpoints GET públicos da API (mural e ranking visíveis sem login)
                         .requestMatchers(HttpMethod.GET,
                                 "/api/ideias/**",
@@ -75,7 +80,7 @@ public class SecurityConfig {
                                 "/api/rankings/**"
                         ).permitAll()
 
-                        // Qualquer outra requisição exige autenticação
+                        // Qualquer outra requisição exige autenticação (admin ou user)
                         .anyRequest().authenticated()
                 )
 
@@ -85,10 +90,6 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
-
-
-
 
 
 
