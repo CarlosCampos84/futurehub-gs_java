@@ -322,7 +322,7 @@ CloudAMQP ou RabbitMQ Cloud configurado via `SPRING_RABBITMQ_HOST` e `SPRING_RAB
 
 ## 👥 Integrantes
 
-- **RM XXXXXX** - [Nome do Integrante]
-- **RM XXXXXX** - [Nome do Integrante 2]
-- **RM XXXXXX** - [Nome do Integrante 3]
+- **RM 555223** - [Carlos Ferraz]
+- **RM 554518** - [Antonio Junior]
+- **RM 554600** - [Caio Henrique]
 
