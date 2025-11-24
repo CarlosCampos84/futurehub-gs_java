@@ -298,9 +298,8 @@ curl -X POST http://localhost:8081/api/missoes/gerar \
 
 ## 🌐 Deploy em Nuvem
 
-### URL de Produção
-🔗 **[ADICIONAR URL DO DEPLOY AQUI]**
-
+### URL de Produção (WEBAPP excluído por conta de gastos, comprovação do deploy no vídeo PITCH)
+🔗 **[https://hoboffuture.azurewebsites.net/swagger-ui.html]**
 ### Banco de Dados
 MongoDB Atlas configurado automaticamente via variável de ambiente `SPRING_DATA_MONGODB_URI`.
 
@@ -312,10 +311,10 @@ CloudAMQP ou RabbitMQ Cloud configurado via `SPRING_RABBITMQ_HOST` e `SPRING_RAB
 ## 🎥 Vídeos de Demonstração
 
 ### Vídeo Pitch (Apresentação da Proposta)
-🎬 **[ADICIONAR LINK DO VÍDEO PITCH AQUI]**
+🎬 **[https://youtu.be/dI2CROfC1b4]**
 
 ### Vídeo Demonstração (Funcionalidades)
-🎬 **[ADICIONAR LINK DO VÍDEO DEMO AQUI]**
+🎬 **[https://youtu.be/r7208CE-LC0]**
 
 
 ---
